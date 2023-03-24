@@ -178,10 +178,22 @@ func getCatechism() []Paragraph {
 }
 
 func main() {
+	// Load the Catechism into the Paragraph array
 	var paragraphs []Paragraph = getCatechism()
-	for _, p := range paragraphs {
-		text := strings.ReplaceAll(p.Text, "\n", " ")
-		fmt.Printf("%s\n", text)
+	// Check for command arguments
+	if len(os.Args) > 1 {
+		paragraphNumber, err := strconv.Atoi(os.Args[1])
+		if err != nil {
+			fmt.Printf("error parsing 1st arg from os.Args: %s\n", err)
+			os.Exit(1)
+		}
+		fmt.Println(paragraphs[paragraphNumber-1].Text)
+
+	} else {
+		for _, p := range paragraphs {
+			text := strings.ReplaceAll(p.Text, "\n", " ")
+			fmt.Printf("%s\n", text)
+		}
 	}
 }
 
