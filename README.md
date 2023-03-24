@@ -6,9 +6,9 @@ To use this command, simply type `ccc` to be greeted by the index:
 ccc
 ```
 
-## Looking up a particular Canon
+## Looking up a particular paragraph
 
-If you wanted to look up a particular canon, like CCC 2765, 
+If you wanted to look up a particular paragraph, like CCC 2765, 
 type `ccc 2765`:
 
 ```
@@ -32,4 +32,3 @@ To advance that position by one, run:
 ```
 ccc next
 ```
-
