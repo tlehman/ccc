@@ -137,9 +137,9 @@ func getOnce(urlStr string) io.Reader {
 	return bufio.NewReader(bytes.NewReader(data))
 }
 
-func getCatechism() []Paragraph {
+func getCatechism() map[int]Paragraph {
 	var urlStr string = vaticanFirstPage
-	var paragraphs []Paragraph = []Paragraph{}
+	var paragraphs map[int]Paragraph = make(map[int]Paragraph)
 
 	// Get the first page of the Catechism
 	for {
@@ -153,12 +153,13 @@ func getCatechism() []Paragraph {
 		// Extract Paragraphs from doc
 		doc.Find("p").Each(func(_ int, s *goquery.Selection) {
 			// Check for paragraph number
-			num, ok := extractNumber(s.Text())
-			if ok {
-				paragraphs = append(paragraphs, Paragraph{
+			num, startsWithNumber := extractNumber(s.Text())
+			_, isStoredInMap := paragraphs[num]
+			if startsWithNumber && !isStoredInMap {
+				paragraphs[num] = Paragraph{
 					Number: num,
 					Text:   s.Text(),
-				})
+				}
 			}
 		})
 		// Get next link
@@ -179,7 +180,7 @@ func getCatechism() []Paragraph {
 
 func main() {
 	// Load the Catechism into the Paragraph array
-	var paragraphs []Paragraph = getCatechism()
+	var paragraphs map[int]Paragraph = getCatechism()
 	// Check for command arguments
 	if len(os.Args) > 1 {
 		paragraphNumber, err := strconv.Atoi(os.Args[1])
@@ -187,7 +188,7 @@ func main() {
 			fmt.Printf("error parsing 1st arg from os.Args: %s\n", err)
 			os.Exit(1)
 		}
-		fmt.Println(paragraphs[paragraphNumber-1].Text)
+		fmt.Println(paragraphs[paragraphNumber].Text)
 
 	} else {
 		for _, p := range paragraphs {
