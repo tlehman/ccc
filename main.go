@@ -183,12 +183,32 @@ func main() {
 	var paragraphs map[int]Paragraph = getCatechism()
 	// Check for command arguments
 	if len(os.Args) > 1 {
-		paragraphNumber, err := strconv.Atoi(os.Args[1])
-		if err != nil {
-			fmt.Printf("error parsing 1st arg from os.Args: %s\n", err)
-			os.Exit(1)
+		reParNum := regexp.MustCompile(`(^\d+$)`)
+		reCommand := regexp.MustCompile(`^(begin|next|back)$`)
+
+		// Check if it's a paragram number
+		if reParNum.MatchString(os.Args[1]) {
+			paragraphNumber, err := strconv.Atoi(os.Args[1])
+			if err != nil {
+				fmt.Printf("error parsing 1st arg from os.Args: %s\n", err)
+				os.Exit(1)
+			}
+			fmt.Println(paragraphs[paragraphNumber].Text)
 		}
-		fmt.Println(paragraphs[paragraphNumber].Text)
+		// Or if it's a subcommand like "begin"
+		if reCommand.MatchString(os.Args[1]) {
+			cmd := os.Args[1]
+			if cmd == "begin" {
+				createPositionFile()
+			} else if cmd == "next" {
+				incrementPositionFile()
+			} else if cmd == "back" {
+				decrementPositionFile()
+			}
+			// Now show the current position's paragraph:
+			pos := getPositionFileValue()
+			fmt.Println(paragraphs[pos].Text)
+		}
 
 	} else {
 		for _, p := range paragraphs {
@@ -239,4 +259,89 @@ func vaticanURL(relativePath string) (string, error) {
 
 	resolvedURL := u.ResolveReference(rel)
 	return resolvedURL.String(), nil
+}
+
+
+func createPositionFile() {
+	filename := "/tmp/.ccc_pos"
+
+	// Create file if not exists
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		file, err := os.Create(filename)
+		if err != nil {
+			fmt.Printf("error creating %s file: %s\n", filename, err)
+			os.Exit(1)
+		}
+		file.Write([]byte("1"))
+		file.Close()
+	}
+}
+
+func incrementPositionFile() {
+	filename := "/tmp/.ccc_pos"
+
+	// Read number out of file
+	numbuf, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Printf("error reading %s file: %s\n", filename, err)
+		os.Exit(1)
+	}
+	// Convert number to int
+	num, err := strconv.Atoi(string(numbuf))
+	if err != nil {
+		fmt.Printf("error converting bytes to int: %s\n", err)
+		os.Exit(1)
+	}
+	// Increment the int
+	num++
+	// Write the number back to the file
+	err = ioutil.WriteFile(filename, []byte(strconv.Itoa(num)), 0644)
+	if err != nil {
+		fmt.Println("Error writing file:", err)
+		os.Exit(1)
+	}
+}
+
+func getPositionFileValue() int {
+	filename := "/tmp/.ccc_pos"
+
+	// Read number out of file
+	numbuf, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Printf("error reading %s file: %s\n", filename, err)
+		return -1
+	}
+	// Convert number to int
+	num, err := strconv.Atoi(string(numbuf))
+	if err != nil {
+		fmt.Printf("error converting bytes to int: %s\n", err)
+		return -1
+	}
+	return num
+}
+
+func decrementPositionFile() {
+	filename := "/tmp/.ccc_pos"
+
+	// Read number out of file
+	numbuf, err := ioutil.ReadFile(filename)
+	if err != nil {
+		fmt.Printf("error reading %s file: %s\n", filename, err)
+		os.Exit(1)
+	}
+	// Convert number to int
+	num, err := strconv.Atoi(string(numbuf))
+	if err != nil {
+		fmt.Printf("error converting bytes to int: %s\n", err)
+		os.Exit(1)
+	}
+	// Decrement the int
+	num--
+	// Write the number back to the file
+	err = ioutil.WriteFile(filename, []byte(strconv.Itoa(num)), 0644)
+	if err != nil {
+		fmt.Println("Error writing file:", err)
+		os.Exit(1)
+	}
 }

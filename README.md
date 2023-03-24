@@ -25,7 +25,7 @@ The `ccc` command can store your current position in the Catechism's text. If yo
 ccc begin
 ```
 
-And the command will save your current position in ~/.ccc/current_position
+And the command will save your current position in ~/.cccpos
 
 To advance that position by one, run:
 
