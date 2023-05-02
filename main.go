@@ -288,7 +288,7 @@ func incrementPositionFile() {
 		os.Exit(1)
 	}
 	// Convert number to int
-	num, err := strconv.Atoi(string(numbuf))
+	num, err := strconv.Atoi(strings.TrimSpace(string(numbuf)))
 	if err != nil {
 		fmt.Printf("error converting bytes to int: %s\n", err)
 		os.Exit(1)
