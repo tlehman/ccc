@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -122,14 +121,15 @@ func getOnce(urlStr string) io.Reader {
 				os.Exit(1)
 			}
 			defer file.Close()
-			file.Write(body)
+			_, err = file.Write(body)
+			if err != nil {
+				fmt.Printf("error writing to file: %s\n", err)
+			}
 			defer res.Body.Close()
 		}
-	} else {
-		//fmt.Printf("fetching %s from cache\n", urlStr)
 	}
 	// Open and read dumped response, and return the response
-	data, err := ioutil.ReadFile(filename)
+	data, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Printf("error reading file %s: %s", filename, data)
 	}
@@ -180,7 +180,7 @@ func getCatechism() map[int]Paragraph {
 
 func main() {
 	// Load the Catechism into the Paragraph array
-	var paragraphs map[int]Paragraph = getCatechism()
+	paragraphs := getCatechism()
 	// Check for command arguments
 	if len(os.Args) > 1 {
 		reParNum := regexp.MustCompile(`(^\d+$)`)
@@ -198,11 +198,12 @@ func main() {
 		// Or if it's a subcommand like "begin"
 		if reCommand.MatchString(os.Args[1]) {
 			cmd := os.Args[1]
-			if cmd == "begin" {
+			switch(cmd) {
+			case "begin":
 				createPositionFile()
-			} else if cmd == "next" {
+			case "next": 
 				incrementPositionFile()
-			} else if cmd == "back" {
+			case "back":
 				decrementPositionFile()
 			}
 			// Now show the current position's paragraph:
@@ -281,7 +282,7 @@ func incrementPositionFile() {
 	filename := "/tmp/.ccc_pos"
 
 	// Read number out of file
-	numbuf, err := ioutil.ReadFile(filename)
+	numbuf, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Printf("error reading %s file: %s\n", filename, err)
 		os.Exit(1)
@@ -295,7 +296,7 @@ func incrementPositionFile() {
 	// Increment the int
 	num++
 	// Write the number back to the file
-	err = ioutil.WriteFile(filename, []byte(strconv.Itoa(num)), 0644)
+	err = os.WriteFile(filename, []byte(strconv.Itoa(num)), 0644)
 	if err != nil {
 		fmt.Println("Error writing file:", err)
 		os.Exit(1)
@@ -306,7 +307,7 @@ func getPositionFileValue() int {
 	filename := "/tmp/.ccc_pos"
 
 	// Read number out of file
-	numbuf, err := ioutil.ReadFile(filename)
+	numbuf, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Printf("error reading %s file: %s\n", filename, err)
 		return -1
@@ -324,7 +325,7 @@ func decrementPositionFile() {
 	filename := "/tmp/.ccc_pos"
 
 	// Read number out of file
-	numbuf, err := ioutil.ReadFile(filename)
+	numbuf, err := os.ReadFile(filename)
 	if err != nil {
 		fmt.Printf("error reading %s file: %s\n", filename, err)
 		os.Exit(1)
@@ -338,7 +339,7 @@ func decrementPositionFile() {
 	// Decrement the int
 	num--
 	// Write the number back to the file
-	err = ioutil.WriteFile(filename, []byte(strconv.Itoa(num)), 0644)
+	err = os.WriteFile(filename, []byte(strconv.Itoa(num)), 0644)
 	if err != nil {
 		fmt.Println("Error writing file:", err)
 		os.Exit(1)
