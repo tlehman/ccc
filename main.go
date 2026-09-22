@@ -98,7 +98,7 @@ func getOnce(urlStr string) io.Reader {
 	if err != nil {
 		if os.IsNotExist(err) {
 			// file doesn't exist, make an HTTP GET request
-			var urlFullStr string = urlStr
+			urlFullStr := urlStr
 			if !strings.HasPrefix(urlStr, "http") {
 				urlFullStr, _ = vaticanURL(urlStr)
 			}
@@ -113,19 +113,24 @@ func getOnce(urlStr string) io.Reader {
 				fmt.Printf("error dumping response: %s\n", err)
 				os.Exit(1)
 			}
-			//fmt.Printf("cacheing %s/\n", urlStr)
+			err = res.Body.Close()
+			if err != nil {
+				fmt.Printf("error closing response body: %s\n", err)
+			}
 			// save the bytes to the ./cache folder so we don't have to request again
 			file, err := os.Create(filename)
 			if err != nil {
 				fmt.Printf("error creating cache file %s: %s\n", filename, err)
 				os.Exit(1)
 			}
-			defer file.Close()
 			_, err = file.Write(body)
 			if err != nil {
 				fmt.Printf("error writing to file: %s\n", err)
 			}
-			defer res.Body.Close()
+			err = file.Close()
+			if err != nil {
+				fmt.Printf("error closing file: %s\n", err)
+			}
 		}
 	}
 	// Open and read dumped response, and return the response
@@ -138,8 +143,8 @@ func getOnce(urlStr string) io.Reader {
 }
 
 func getCatechism() map[int]Paragraph {
-	var urlStr string = vaticanFirstPage
-	var paragraphs map[int]Paragraph = make(map[int]Paragraph)
+	urlStr := vaticanFirstPage
+	paragraphs := make(map[int]Paragraph)
 
 	// Get the first page of the Catechism
 	for {
@@ -273,8 +278,17 @@ func createPositionFile() {
 			fmt.Printf("error creating %s file: %s\n", filename, err)
 			os.Exit(1)
 		}
-		file.Write([]byte("1"))
-		file.Close()
+		_, err = file.Write([]byte("1"))
+		if err != nil {
+			fmt.Printf("error writing %s file: %s\n", filename, err)
+			os.Exit(1)
+		}
+
+		err = file.Close()
+		if err != nil {
+			fmt.Printf("error closing %s file: %s\n", filename, err)
+			os.Exit(1)
+		}
 	}
 }
 
