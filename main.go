@@ -19,40 +19,40 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-// There are four parts to the catechism
+// Part is the struct holding the parts of the Catechism
 type Part struct {
 	Title    string
 	Sections []Section
 }
 
-// A section has many chapters
+// Section has many chapters
 type Section struct {
 	Title    string
 	Chapters []Chapter
 }
 
-// A chapter has many articles
+// Chapter has many articles
 type Chapter struct {
 	Parent   *Section
 	Title    string
 	Articles []Article
 }
 
-// An article has many sub-articles
+// Article has many sub-articles
 type Article struct {
 	Parent      *Chapter
 	Title       string
 	SubArticles []SubArticle
 }
 
-// A sub-article has many paragraphs
+// SubArticle has many paragraphs
 type SubArticle struct {
 	Parent     *Article
 	Title      string
 	Paragraphs []Paragraph
 }
 
-// A paragraph has a number (e.g. 484) and text, as well as many
+// Paragraph has a number (e.g. 484) and text, as well as many
 type Paragraph struct {
 	Parent     *SubArticle
 	Number     int // Paragraph numbers like 484 would correspond to "CCC 484" which starts with 'The Annunciation to Mary inaugurates "the fullness of time"'
@@ -111,7 +111,7 @@ func getOnce(urlStr string) io.Reader {
 			// dump the response body to raw bytes for caching
 			body, err := httputil.DumpResponse(res, true)
 			if err != nil {
-				fmt.Printf("error dumping response: %\n", err)
+				fmt.Printf("error dumping response: %s\n", err)
 				os.Exit(1)
 			}
 			//fmt.Printf("cacheing %s/\n", urlStr)
@@ -260,7 +260,6 @@ func vaticanURL(relativePath string) (string, error) {
 	resolvedURL := u.ResolveReference(rel)
 	return resolvedURL.String(), nil
 }
-
 
 func createPositionFile() {
 	filename := "/tmp/.ccc_pos"
